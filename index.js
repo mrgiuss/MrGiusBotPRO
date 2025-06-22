@@ -1,3 +1,4 @@
+
 const express = require('express');
 const axios = require('axios');
 require('dotenv').config();
@@ -5,38 +6,33 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID; // Inserire il proprio ID utente
-const BYBIT_API_KEY = process.env.BYBIT_API_KEY;
-const BYBIT_API_SECRET = process.env.BYBIT_API_SECRET;
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const BYBIT_API_KEY = process.env.BYBIT_API_KEY || 'abc123';
+const BYBIT_API_SECRET = process.env.BYBIT_API_SECRET || 'xyz456';
 
-// Webhook per TradingView
+// Webhook TradingView
 app.post('/webhook', async (req, res) => {
-    const { pair, type, leverage, size, tp, sl, trail, timeout } = req.body;
+  try {
+    const { pair, type } = req.body;
 
-    if (!pair || !type) {
-        return res.status(400).send("Missing pair or type");
-    }
+    const text = `🔔 Segnale ricevuto:\nCoppia: ${pair}\nTipo: ${type}`;
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
 
-    // Invia un messaggio su Telegram
-    const text = `🚀 Segnale ricevuto: ${type.toUpperCase()} su ${pair} con leva ${leverage}x e size ${size}`;
-    try {
-        await axios.post(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-            chat_id: TELEGRAM_CHAT_ID,
-            text
-        });
-        res.status(200).send("Messaggio Telegram inviato");
-    } catch (error) {
-        console.error("Errore Telegram:", error.response ? error.response.data : error.message);
-        res.status(500).send("Errore invio Telegram");
-    }
+    await axios.post(url, {
+      chat_id: TELEGRAM_CHAT_ID,
+      text: text,
+      parse_mode: 'Markdown',
+    });
+
+    res.status(200).send('Messaggio inviato a Telegram');
+  } catch (error) {
+    console.error('Errore Telegram:', error.response?.data || error.message);
+    res.status(500).send('Errore nel webhook');
+  }
 });
 
-app.get("/", (req, res) => {
-    res.send("MrGiusBotPRO attivo.");
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server in ascolto sulla porta ${PORT}`);
+const port = process.env.PORT || 4000;
+app.listen(port, () => {
+  console.log(`Server in ascolto sulla porta ${port}`);
 });
