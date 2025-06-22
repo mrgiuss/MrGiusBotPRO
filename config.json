@@ -1,0 +1,8 @@
+
+{
+  "leverage": 50,
+  "size": 2000,
+  "takeProfitPercent": 6,
+  "stopLossPercent": 1.5,
+  "timeoutMinutes": 6
+}
